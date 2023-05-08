@@ -3,10 +3,8 @@ pragma solidity ^0.8.16;
 
 import "./IOracle.sol";
 
-contract Aggr3OracleWrapper {
-    IOracle immutable a3oracle;
-
-    uint256 constant SCALE = 1e18;
+contract OracleValueInverter {
+    IOracle immutable a3oracle; // A3 oracle address
 
     mapping(address => bool) public acceptedTermsOfService;
 
@@ -36,6 +34,13 @@ contract Aggr3OracleWrapper {
     {
         uint256 price = a3oracle.readData();
 
-        return (1e18 * SCALE) / price;
+        // The price returned by the A3 oracle is scaled to 18 decimals.
+        // The inverted price is calculated as: 1e18/`price`.
+        // Solidity does not handle floating numbers, as a result of this,
+        // doing such a division can result in a floating number which would be returned as 0.
+        // To get the the inverted price:
+        // 1. multiply 1e18 by 1e18 to handle a case of a floating point number.
+        // 2. divide the result of step 1 by the price gotten from `readData`
+        return (1e18 * 1e18) / price;
     }
 }
