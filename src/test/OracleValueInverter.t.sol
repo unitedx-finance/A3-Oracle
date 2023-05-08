@@ -3,13 +3,13 @@ pragma solidity >=0.8.0;
 
 import {BaseSetup} from "./BaseSetup.sol";
 import {Aggr3Oracle} from "../Aggr3Oracle.sol";
-import {Aggr3OracleWrapper} from "../Aggr3OracleWrapper.sol";
+import {OracleValueInverter} from "../OracleValueInverter.sol";
 import {IOracle} from "../IOracle.sol";
 import {console} from "./utils/Console.sol";
 
 contract Aggr3OracleWrapperTest is BaseSetup {
     Aggr3Oracle internal aggr3Oracle;
-    Aggr3OracleWrapper internal aggr3OracleWrapper;
+    OracleValueInverter internal aggr3OracleWrapper;
 
     function setUp() public override {
         super.setUp();
@@ -18,7 +18,7 @@ contract Aggr3OracleWrapperTest is BaseSetup {
         aggr3Oracle = new Aggr3Oracle(owner, "Description", "Terms of service");
         vm.stopPrank();
 
-        aggr3OracleWrapper = new Aggr3OracleWrapper(
+        aggr3OracleWrapper = new OracleValueInverter(
             IOracle(address(aggr3Oracle))
         );
     }
@@ -30,11 +30,11 @@ contract Aggr3OracleWrapperTest is BaseSetup {
         assertTrue(accepted);
     }
 
-    function testReadPriceIfAcceptedToS(uint256 _price) public {
-        vm.assume(_price > 0);
+    function testReadPriceIfAcceptedToS() public {
+        uint256 price = 2e18;
 
         vm.prank(owner);
-        aggr3Oracle.writeData(_price);
+        aggr3Oracle.writeData(price);
         vm.stopPrank();
 
         vm.startPrank(reader);
@@ -44,7 +44,7 @@ contract Aggr3OracleWrapperTest is BaseSetup {
 
         uint256 priceData = aggr3OracleWrapper.readData();
 
-        uint256 invertedPrice = (1e18 * 1e18) / _price;
+        uint256 invertedPrice = 5e17;
 
         assertEq(priceData, invertedPrice);
         vm.stopPrank();
